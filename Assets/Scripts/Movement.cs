@@ -175,7 +175,7 @@ public class Movement : MonoBehaviour
             SlamUnlocked = false;
             DashUnlocked = false;
             DoubleJumpUnlocked = false;
-            movespeed = 6;
+            movespeed = 7;
         }
     }
 
