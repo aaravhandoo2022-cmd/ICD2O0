@@ -27,6 +27,7 @@ public class Movement : MonoBehaviour
     public bool dashedonce;
     public bool jumpedonce;
     public Camera Cam;
+    public GameObject Blink;
 
     public bool DoubleJumpUnlocked;
     public bool DashUnlocked;
@@ -37,9 +38,9 @@ public class Movement : MonoBehaviour
         MyVelocity = 0;
         MyRb = GetComponent<Rigidbody2D>();
         CanMove = true;
-        DoubleJumpUnlocked = false;
-        DashUnlocked = false;
-        SlamUnlocked = false;
+        DoubleJumpUnlocked = true;
+        DashUnlocked = true;
+        SlamUnlocked = true;
         movespeed = 7; //10
         dashforce = 22; //22
 
@@ -50,37 +51,55 @@ public class Movement : MonoBehaviour
     void Update()
     {
 
+        if (Input.GetKey(KeyCode.LeftShift) && CanMove == true)
+        {
+            movespeed = 3.5f;
+        }
+        else
+        {
+            movespeed = 7;
+        }
 
-        if (IsDashing == false)
+
+        if (IsDashing == false && IsDiving == false)
         {
             
             MyRb.constraints &= ~RigidbodyConstraints2D.FreezePositionY;
         }
 
+        if (IsDiving == true)
+        {
+            CanMove = false;
+        }
 
-            if (Input.GetKey(KeyCode.D) && CanMove == true)
+
+            if (Input.GetKey(KeyCode.D) && CanMove == true && IsDashing == false)
             {
             inputX = 1;
                 MyRb.position += Vector2.right * inputX * movespeed * Time.deltaTime;
             }
 
-            if (Input.GetKey(KeyCode.A) && CanMove == true)
+            if (Input.GetKey(KeyCode.A) && CanMove == true && IsDashing == false)
             {
             inputX = -1;
                 MyRb.position += Vector2.right * movespeed * inputX * Time.deltaTime;
             }
 
-            if (Input.GetKeyDown(KeyCode.Space) && IsGrounded == true && CanMove == true)
+            if (Input.GetKeyDown(KeyCode.Space) && IsGrounded == true && IsDiving == false)
             {
-                MyRb.AddForce(Vector2.up * 18f, ForceMode2D.Impulse);
+            MyRb.constraints &= ~RigidbodyConstraints2D.FreezePositionY;
+            MyRb.AddForce(Vector2.up * 18f, ForceMode2D.Impulse);
             Invoke("givedoublejump", 0.15f);
             }
 
-        if (Input.GetKeyDown(KeyCode.Space) && IsGrounded == false && CanMove == true && jumpedonce == true && DoubleJumpUnlocked == true)
+        if (Input.GetKeyDown(KeyCode.Space) && IsGrounded == false && IsDiving == false && jumpedonce == true && DoubleJumpUnlocked == true)
         {
+            MyRb.constraints &= ~RigidbodyConstraints2D.FreezePositionY;
             MyRb.AddForce(Vector2.up * 18f, ForceMode2D.Impulse);
             jumpedonce = false;
+            
         }
+
 
         if (Input.GetKeyDown(KeyCode.E) && CanMove == true && DashOnCD == false && IsDashing == false && IsGrounded == true && DashUnlocked == true)
             {
@@ -92,6 +111,7 @@ public class Movement : MonoBehaviour
                 DashOnCD = true;
                 Invoke("GiveMovement", 0.50f);
                 Invoke("GiveDash", 0.50f);
+            //jumpedonce = true;
             }
 
         if (Input.GetKeyDown(KeyCode.E) && CanMove == true && DashOnCD == false && IsDashing == false && IsGrounded == false && dashedonce == false && DashUnlocked == true)
@@ -102,33 +122,57 @@ public class Movement : MonoBehaviour
             MyRb.AddForce(Vector2.right * dashforce * Mathf.RoundToInt(inputX), ForceMode2D.Impulse);
             MyRb.constraints |= RigidbodyConstraints2D.FreezePositionY;
             DashOnCD = true;
-            Invoke("GiveMovement", 0.50f);
-            Invoke("GiveDash", 0.50f);
+            Invoke("GiveMovement", 0.5f);
+            Invoke("GiveDash", 0.5f);
             dashedonce = true;
-            jumpedonce = true;
+            if (jumpedonce == true)
+            {
+                jumpedonce = false;
+            }
+
+            if (jumpedonce == false)
+            {
+                jumpedonce = true;
+            }
         }
 
         if (Input.GetKeyDown(KeyCode.S) && SlamOnCD == false && IsDiving == false && SlamUnlocked == true)
             {
-                Slam();
-                IsDiving = true;
-                IsDashing = false;
-                CanMove = false;
-                SlamOnCD = true;
-                MyRb.velocity = Vector2.zero;
-                Invoke("GiveSlam", 0.2f);
+            MyRb.constraints |= RigidbodyConstraints2D.FreezePositionX;
+            MyRb.constraints |= RigidbodyConstraints2D.FreezePositionY;
+            IsDiving = true;
+            IsDashing = false;
+            CanMove = false;
+            SlamOnCD = true;
+            Invoke("UnfreezeY", 0.15f);
+            Invoke("Slam", 0.15f);  
+            Invoke("GiveSlam", 0.2f);
             }
 
         
     }
 
+    public void UnfreezeY()
+    {
+        MyRb.constraints &= ~RigidbodyConstraints2D.FreezePositionY;
+    }
+    public void Blinking()
+    {
+        Blink.SetActive(true);
+        Invoke("Unblink", 0.3f);
+    }
+
+    public void Unblink()
+    {
+        Blink.SetActive(false);
+    }
     public void givedoublejump()
     {
         jumpedonce = true;
     }
     public void Slam()
     {
-        MyRb.gravityScale = 31f;
+        MyRb.gravityScale = 500f;
     }
     public void GiveMovement()
     {
@@ -157,6 +201,7 @@ public class Movement : MonoBehaviour
         }
        // IsGrounded = true;
         IsDiving = false;
+        MyRb.constraints &= ~RigidbodyConstraints2D.FreezePositionX;
         MyRb.gravityScale = 2.5f;
         Invoke("GiveMovement", 0.2f);
     }
@@ -170,12 +215,14 @@ public class Movement : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Enemy"))
         {
+            Blinking();
             transform.position = new Vector2(-11f, -2.882037f);
+            Cam.transform.position = new Vector3(transform.position.x, transform.position.y, Cam.transform.position.z);
             MyRb.constraints |= RigidbodyConstraints2D.FreezePositionY;
-            SlamUnlocked = false;
-            DashUnlocked = false;
-            DoubleJumpUnlocked = false;
-            movespeed = 7;
+            //SlamUnlocked = false;
+            //DashUnlocked = false;
+            //DoubleJumpUnlocked = false;
+            //movespeed = 7;
         }
     }
 
@@ -187,7 +234,9 @@ public class Movement : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.W) && collision.gameObject.CompareTag("DiveDoor"))
         {
+            Blinking();
             transform.position = new Vector2(33.9f, -50);
+            Cam.transform.position = new Vector3(transform.position.x, transform.position.y, Cam.transform.position.z);
             SlamUnlocked = true;
         }
     }
