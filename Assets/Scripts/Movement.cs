@@ -28,10 +28,13 @@ public class Movement : MonoBehaviour
     public bool jumpedonce;
     public Camera Cam;
     public GameObject Blink;
+    public GameObject proceedtext;
+    public GameObject PROCEEDTEXT;
 
     public bool DoubleJumpUnlocked;
     public bool DashUnlocked;
     public bool SlamUnlocked;
+    public GameObject Refusaltext;
     // Start is called before the first frame update
     void Start()
     {
@@ -45,6 +48,8 @@ public class Movement : MonoBehaviour
         dashforce = 22; //22
 
         inputX = 0;
+
+        
 }
 
     // Update is called once per frame
@@ -54,10 +59,12 @@ public class Movement : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftShift) && CanMove == true)
         {
             movespeed = 3.5f;
+            dashforce = 16;
         }
         else
         {
             movespeed = 7;
+            dashforce = 22;
         }
 
 
@@ -125,15 +132,8 @@ public class Movement : MonoBehaviour
             Invoke("GiveMovement", 0.5f);
             Invoke("GiveDash", 0.5f);
             dashedonce = true;
-            if (jumpedonce == true)
-            {
-                jumpedonce = false;
-            }
+            
 
-            if (jumpedonce == false)
-            {
-                jumpedonce = true;
-            }
         }
 
         if (Input.GetKeyDown(KeyCode.S) && SlamOnCD == false && IsDiving == false && SlamUnlocked == true)
@@ -239,6 +239,18 @@ public class Movement : MonoBehaviour
             Cam.transform.position = new Vector3(transform.position.x, transform.position.y, Cam.transform.position.z);
             SlamUnlocked = true;
         }
+
+        if (Input.GetKeyDown(KeyCode.W) && collision.gameObject.CompareTag("DashDoor"))
+        {
+            Blinking();
+            Cam.transform.position = new Vector3(transform.position.x, transform.position.y, Cam.transform.position.z);
+            SlamUnlocked = true;
+            collision.gameObject.SetActive(false);
+            Refusaltext.SetActive(false);
+            PROCEEDTEXT.SetActive(true);
+            proceedtext.SetActive(false);
+        }
+
     }
 
     private void OnTriggerEnter2D(Collider2D collision)

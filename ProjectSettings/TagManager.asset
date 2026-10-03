@@ -8,6 +8,7 @@ TagManager:
   - Enemy
   - DiveDoor
   - DashDoor
+  - Amulet
   layers:
   - Default
   - TransparentFX
