@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Windows;
@@ -315,7 +314,7 @@ public class Movement : MonoBehaviour
 
         }
 
-        if (Input.GetKeyDown(KeyCode.W) && collision.gameObject.CompareTag("Return"))
+        if (Input.GetKeyDown(KeyCode.W) && collision.gameObject.CompareTag("Return") && CarryingAmulet == true)
         {
             transform.position = new Vector2(92.28f, 3.04f);
             Blinking();
