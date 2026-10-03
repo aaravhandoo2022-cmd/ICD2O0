@@ -2,6 +2,7 @@ using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,7 +23,7 @@ public class Movement : MonoBehaviour
     public bool DashOnCD;
     public bool IsDashing;
     public bool IsDiving;
-    public BoxCollider2D MyBc;
+    public CapsuleCollider2D MyBc;
     public float MyVelocity;
     public bool dashedonce;
     public bool jumpedonce;
@@ -35,6 +36,13 @@ public class Movement : MonoBehaviour
     public bool DashUnlocked;
     public bool SlamUnlocked;
     public GameObject Refusaltext;
+    public bool CarryingAmulet;
+    public GameObject amuletext;
+
+    public GameObject GoodText;
+    public GameObject BadText;
+    public GameObject FailedText;
+    public GameObject AmuletIsland;
     // Start is called before the first frame update
     void Start()
     {
@@ -55,6 +63,18 @@ public class Movement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+        if (CarryingAmulet == true)
+
+        {
+            jumpedonce = true;
+            CanMove = true;
+            DashOnCD = false;
+            IsDashing = false;
+            SlamOnCD = false;
+            IsDiving = false;
+            dashedonce = false;
+        }
 
         if (Input.GetKey(KeyCode.LeftShift) && CanMove == true)
         {
@@ -213,9 +233,23 @@ public class Movement : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Enemy"))
+        if (collision.gameObject.CompareTag("Enemy") && CarryingAmulet == false)
         {
             Blinking();
+            transform.position = new Vector2(-11f, -2.882037f);
+            Cam.transform.position = new Vector3(transform.position.x, transform.position.y, Cam.transform.position.z);
+            MyRb.constraints |= RigidbodyConstraints2D.FreezePositionY;
+            //SlamUnlocked = false;
+            //DashUnlocked = false;
+            //DoubleJumpUnlocked = false;
+            //movespeed = 7;
+        }
+
+        if (collision.gameObject.CompareTag("Enemy") && CarryingAmulet == true)
+        {
+            Player.SetActive(false);
+            Blink.SetActive(true);
+            FailedText.SetActive(true);
             transform.position = new Vector2(-11f, -2.882037f);
             Cam.transform.position = new Vector3(transform.position.x, transform.position.y, Cam.transform.position.z);
             MyRb.constraints |= RigidbodyConstraints2D.FreezePositionY;
@@ -251,11 +285,68 @@ public class Movement : MonoBehaviour
             proceedtext.SetActive(false);
         }
 
+        if (Input.GetKeyDown(KeyCode.W) && collision.gameObject.CompareTag("Acceptance"))
+        {
+            Player.SetActive(false);
+            Blink.SetActive(true);
+            GoodText.SetActive(true);
+
+            Cam.transform.position = new Vector3(transform.position.x, transform.position.y, Cam.transform.position.z);
+            SlamUnlocked = true;
+            collision.gameObject.SetActive(false);
+            Refusaltext.SetActive(false);
+            PROCEEDTEXT.SetActive(true);
+            proceedtext.SetActive(false);
+            
+        }
+
+        if (Input.GetKeyDown(KeyCode.W) && collision.gameObject.CompareTag("Denial"))
+        {
+            Player.SetActive(false);
+            Blink.SetActive(true);
+            BadText.SetActive(true);
+
+            Cam.transform.position = new Vector3(transform.position.x, transform.position.y, Cam.transform.position.z);
+            SlamUnlocked = true;
+            collision.gameObject.SetActive(false);
+            Refusaltext.SetActive(false);
+            PROCEEDTEXT.SetActive(true);
+            proceedtext.SetActive(false);
+
+        }
+
+        if (Input.GetKeyDown(KeyCode.W) && collision.gameObject.CompareTag("Return"))
+        {
+            transform.position = new Vector2(92.28f, 3.04f);
+            Blinking();
+
+            Cam.transform.position = new Vector3(transform.position.x, transform.position.y, Cam.transform.position.z);
+            SlamUnlocked = true;
+            collision.gameObject.SetActive(false);
+            Refusaltext.SetActive(false);
+            PROCEEDTEXT.SetActive(true);
+            proceedtext.SetActive(false);
+
+        }
+
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        
+        if (collision.gameObject.CompareTag("Amulet"))
+        {
+
+            Blinking();
+            MySprite.color = Color.yellow;
+            CarryingAmulet = true;
+            collision.gameObject.SetActive(false);
+            amuletext.SetActive(true);
+            AmuletIsland.SetActive(true);
+            //SlamUnlocked = false;
+            //DashUnlocked = false;
+            //DoubleJumpUnlocked = false;
+            //movespeed = 7;
+        }
     }
 
     private void OnTriggerExit2D(Collider2D collision)

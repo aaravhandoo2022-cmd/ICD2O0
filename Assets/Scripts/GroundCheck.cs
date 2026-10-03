@@ -8,7 +8,7 @@ using Input = UnityEngine.Input;
 
 public class GroundCheck : MonoBehaviour
 {
-    public BoxCollider2D MyBc;
+    public CapsuleCollider2D MyBc;
     public Movement movement;
     // Start is called before the first frame update
     void Start()

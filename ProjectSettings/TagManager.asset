@@ -9,6 +9,9 @@ TagManager:
   - DiveDoor
   - DashDoor
   - Amulet
+  - Acceptance
+  - Denial
+  - Return
   layers:
   - Default
   - TransparentFX
